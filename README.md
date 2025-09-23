@@ -135,6 +135,7 @@ Installation
 1.Clone the repository
 
 git clone <your-github-repo-url>
+
 cd FAVCOM
 
 2.Run automated setup
