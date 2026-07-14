@@ -7,6 +7,7 @@ import { HeartIcon, StarIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { useStore } from '@/context/StoreContext';
 import type { Product } from '@/types';
+import { formatCurrency } from '@/utils/format';
 
 interface ProductCardProps {
   product: Product;
@@ -166,11 +167,11 @@ export default function ProductCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <span className="text-lg font-bold text-white">
-              ₹{product.price.toFixed(2)}
+              {formatCurrency(product.price)}
             </span>
             {product.originalPrice && (
               <span className="text-sm text-gray-400 line-through">
-                ₹{product.originalPrice.toFixed(2)}
+                {formatCurrency(product.originalPrice)}
               </span>
             )}
           </div>

@@ -2,39 +2,39 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import ProductCard from '@/components/ProductCard';
 import SearchBar from '@/components/SearchBar';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import { Product } from '@/types';
-import { loadProducts, loadCategories, getFeaturedProducts, getTrendingProducts } from '@/lib/products';
 import RecommendationsSection from '@/components/RecommendationsSection';
 
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [trendingProducts, setTrendingProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<{ name: string; count: number }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      // Load featured products (highest rated)
-      const featured = getFeaturedProducts(8);
-      setFeaturedProducts(featured);
-      
-      // Load trending products (most reviewed)
-      const trending = getTrendingProducts(8);
-      setTrendingProducts(trending);
-      
-      // Load categories
-      const categoryData = loadCategories().slice(0, 12); // Top 12 categories
-      setCategories(categoryData);
-      
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      setIsLoading(false);
-    }
+    const loadHomeData = async () => {
+      try {
+        const [featuredRes, categoriesRes] = await Promise.all([
+          fetch('/api/products?sortBy=rating-high&limit=8'),
+          fetch('/api/products?categories=true'),
+        ]);
+
+        const [featuredData, categoryData] = await Promise.all([
+          featuredRes.json(),
+          categoriesRes.json(),
+        ]);
+
+        setFeaturedProducts(Array.isArray(featuredData.products) ? featuredData.products : []);
+        setCategories(Array.isArray(categoryData.categories) ? categoryData.categories.slice(0, 12) : []);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadHomeData();
   }, []);
 
   const handleSearch = (query: string) => {

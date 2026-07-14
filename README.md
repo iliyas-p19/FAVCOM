@@ -307,8 +307,6 @@ FAVCOM/
 
 │   │   ├── �� processed-products.json # Processed product data
 
-│   │   ├── 📄 products.json         # Product data backup
-
 │   │   ├── 📄 profile.json          # User profile data
 
 │   │   └── �� wishlist.json         # Wishlist data storage
@@ -322,10 +320,6 @@ FAVCOM/
 │   │   └── 📄 recommendation.ts     # AI recommendation engine
 
 │   ├── 📁 scripts/                  # Data processing and utility scripts
-
-│   │   ├── �� fetch-products.ts     # Product data fetching
-
-│   │   ├── �� flipkart-csv-to-json.ts # CSV to JSON conversion
 
 │   │   └── 📄 process-flipkart-data.ts # Data processing pipeline
 

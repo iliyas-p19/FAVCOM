@@ -18,19 +18,7 @@ export default function RecommendationsSection({ title, userId, productId, limit
       try {
         const res = await fetch('/api/recommendations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, productId, limit }) });
         const data = await res.json();
-        const mapped = (data || []).map((p: any) => ({
-          id: String(p.id),
-          name: p.title || p.name,
-          price: p.price,
-          image: p.image,
-          category: p.category,
-          description: '',
-          rating: 4.4,
-          reviews: 50,
-          inStock: true,
-          tags: [p.category]
-        })) as Product[];
-        setItems(mapped);
+        setItems(Array.isArray(data) ? data : []);
       } catch {
         setItems([]);
       }

@@ -1,14 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { getProductById, getProductsByCategory } from '@/lib/products';
 import { useStore } from '@/context/StoreContext';
 import type { Product } from '@/types';
 import RecommendationsSection from '@/components/RecommendationsSection';
-import { StarIcon, HeartIcon, HeartSolidIcon, ShoppingCartIcon } from '@heroicons/react/24/solid';
+import { StarIcon, HeartIcon as HeartSolidIcon, ShoppingCartIcon } from '@heroicons/react/24/solid';
+import { HeartIcon } from '@heroicons/react/24/outline';
 import SearchBar from '@/components/SearchBar';
+import { formatCurrency } from '@/utils/format';
 
 // Helper function to validate and clean image URLs
 const getValidImageUrl = (url: string): string => {
@@ -32,23 +33,44 @@ const getValidImageUrl = (url: string): string => {
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
   const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useStore();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  const product = useMemo(() => {
-    const p = getProductById(String(params?.id));
-    if (!p) return undefined as unknown as Product | undefined;
-    return p;
-  }, [params]);
 
-  const similarProducts = useMemo(() => {
-    if (!product) return [];
-    return getProductsByCategory(product.category, 4);
-  }, [product]);
+  useEffect(() => {
+    const loadProduct = async () => {
+      setIsLoading(true);
+      setSelectedImage(0);
+      try {
+        const response = await fetch(`/api/products?id=${encodeURIComponent(String(params?.id || ''))}`);
+        if (!response.ok) {
+          setProduct(null);
+          setSimilarProducts([]);
+          return;
+        }
+
+        const item = await response.json() as Product;
+        setProduct(item);
+
+        const similarResponse = await fetch(`/api/products?category=${encodeURIComponent(item.category)}&limit=5`);
+        const similarData = await similarResponse.json();
+        const similarItems = Array.isArray(similarData.products) ? similarData.products : [];
+        setSimilarProducts(similarItems.filter((candidate: Product) => candidate.id !== item.id).slice(0, 4));
+      } catch (error) {
+        console.error('Error loading product:', error);
+        setProduct(null);
+        setSimilarProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [params?.id]);
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
     if (query) {
       window.location.href = `/products?search=${encodeURIComponent(query)}`;
     }
@@ -68,6 +90,17 @@ export default function ProductDetailPage() {
       addToWishlist(product);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-white">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -174,9 +207,9 @@ export default function ProductDetailPage() {
 
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
-                <span className="text-3xl font-bold text-white">₹{product.price.toFixed(2)}</span>
+                <span className="text-3xl font-bold text-white">{formatCurrency(product.price)}</span>
                 {product.originalPrice && (
-                  <span className="text-xl text-gray-400 line-through">₹{product.originalPrice.toFixed(2)}</span>
+                  <span className="text-xl text-gray-400 line-through">{formatCurrency(product.originalPrice)}</span>
                 )}
               </div>
 
@@ -285,7 +318,7 @@ export default function ProductDetailPage() {
                   <div className="p-4">
                     <h3 className="font-semibold text-white mb-2 line-clamp-2">{similarProduct.name}</h3>
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-white">₹{similarProduct.price.toFixed(2)}</span>
+                      <span className="text-lg font-bold text-white">{formatCurrency(similarProduct.price)}</span>
                       <a
                         href={`/products/${similarProduct.id}`}
                         className="text-blue-400 hover:text-blue-300 text-sm font-medium"

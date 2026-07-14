@@ -88,7 +88,7 @@ export default function VirtualizedProductGrid({
               gridTemplateColumns: `repeat(${itemsPerRow}, 1fr)`,
             }}
           >
-            {visibleProducts.map((product, index) => (
+            {visibleProducts.map((product) => (
               <div
                 key={product.id}
                 style={{

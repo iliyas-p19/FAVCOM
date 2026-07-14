@@ -1,3 +1,5 @@
+import { formatCurrency } from '@/utils/format';
+
 export default function ShippingInfoPage() {
   return (
     <div className="min-h-screen bg-gray-900">
@@ -17,8 +19,8 @@ export default function ShippingInfoPage() {
                   <h3 className="text-xl font-semibold text-white mb-3">Standard Shipping</h3>
                   <ul className="text-gray-300 space-y-2">
                     <li>• 3-5 business days</li>
-                    <li>• Free on orders over ₹999</li>
-                    <li>• ₹99 for orders under ₹999</li>
+                    <li>• Free on orders over {formatCurrency(999)}</li>
+                    <li>• {formatCurrency(99)} for orders under {formatCurrency(999)}</li>
                     <li>• Tracking included</li>
                   </ul>
                 </div>
@@ -26,7 +28,7 @@ export default function ShippingInfoPage() {
                   <h3 className="text-xl font-semibold text-white mb-3">Express Shipping</h3>
                   <ul className="text-gray-300 space-y-2">
                     <li>• 1-2 business days</li>
-                    <li>• ₹199 flat rate</li>
+                    <li>• {formatCurrency(199)} flat rate</li>
                     <li>• Priority processing</li>
                     <li>• Real-time tracking</li>
                   </ul>

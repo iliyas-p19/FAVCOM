@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
-import { loadProducts, searchProducts, getProductsByCategory, getFeaturedProducts } from '@/lib/products';
+import { loadProducts, searchProducts } from '@/lib/products';
 import type { Product } from '@/types';
 import OpenAI from 'openai';
+import { formatCurrency } from '@/utils/format';
 
 function filterProductsByQuery(query: string): Product[] {
   const products = loadProducts();
   const lowerQuery = query.toLowerCase();
   
   // Extract price information
-  const priceMatch = query.match(/(?:under|below|less than)\s*(?:\₹|rs\.?|inr|\$)?\s*(\d+(?:\.\d+)?)/i);
+  const priceMatch = query.match(/(?:under|below|less than)\s*(?:\u20b9|rs\.?|inr|\$)?\s*(\d+(?:\.\d+)?)/i);
   const maxPrice = priceMatch ? parseFloat(priceMatch[1]) : undefined;
   
   // Extract category information
@@ -74,15 +75,15 @@ export async function POST(req: Request) {
     let messageText = 'Here are some options from our FAVCOM catalog.';
     
     if (q.includes('shipping') || q.includes('delivery')) {
-      messageText = 'We offer fast and reliable shipping! Standard delivery is 3-5 business days, express is 1-2 days. Free shipping on orders over ₹999.';
+      messageText = `We offer fast and reliable shipping! Standard delivery is 3-5 business days, express is 1-2 days. Free shipping on orders over ${formatCurrency(999)}.`;
     } else if (q.includes('return') || q.includes('refund')) {
       messageText = 'Easy returns within 30 days! Items must be in original condition with receipt. We provide hassle-free return process.';
     } else if (q.includes('price') || q.includes('budget') || q.includes('under') || q.includes('cheap')) {
-      messageText = 'Tell me your budget range, like "under ₹5000" or "between ₹1000-3000", and I\'ll find the best products for you!';
+      messageText = `Tell me your budget range, like "under ${formatCurrency(5000)}" or "between ${formatCurrency(1000)}-${formatCurrency(3000)}", and I'll find the best products for you!`;
     } else if (q.includes('offer') || q.includes('discount') || q.includes('sale') || q.includes('deal')) {
       messageText = 'Great deals available! Check out our featured products with discounts. Many items have special pricing - look for the discount badges!';
     } else if (q.includes('help') || q.includes('assist')) {
-      messageText = 'I\'m here to help! You can ask me about specific products, categories, prices, or general shopping questions. Try "show me electronics under ₹10000" or "best rated laptops".';
+      messageText = `I'm here to help! You can ask me about specific products, categories, prices, or general shopping questions. Try "show me electronics under ${formatCurrency(10000)}" or "best rated laptops".`;
     } else if (q.includes('best') || q.includes('top') || q.includes('recommend')) {
       messageText = 'I\'d be happy to recommend the best products! Based on your query, here are some top-rated options from our catalog.';
     } else if (suggested.length > 0) {
@@ -104,14 +105,14 @@ export async function POST(req: Request) {
     - Answer questions about shipping, returns, and general shopping
     - Be friendly, helpful, and concise
     - Always mention relevant products when appropriate
-    - Use ₹ (rupee) symbol for prices
+    - Use Indian Rupee formatting for prices
     - Focus on the Indian market and preferences
     
     When suggesting products, mention key details like price, rating, and why it's a good choice.`;
 
     const user = String(message || '');
     const suggestionsText = suggested.slice(0, 6).map(p => 
-      `${p.name} - ₹${p.price} (${p.rating}★, ${p.reviews} reviews) - ${p.category}${p.brand ? ` by ${p.brand}` : ''}`
+      `${p.name} - ${formatCurrency(p.price)} (${p.rating} stars, ${p.reviews} reviews) - ${p.category}${p.brand ? ` by ${p.brand}` : ''}`
     ).join('\n');
 
     const resp = await client.chat.completions.create({

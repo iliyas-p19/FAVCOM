@@ -5,8 +5,6 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "fetch:products": "tsx src/scripts/fetch-products.ts",
-    "flipkart:build": "tsx src/scripts/flipkart-csv-to-json.ts",
     "process:data": "tsx src/scripts/process-flipkart-data.ts",
     "start": "next start",
     "lint": "eslint",

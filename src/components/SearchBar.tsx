@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { searchProducts } from '@/lib/products';
 import type { Product } from '@/types';
+import { formatCurrency } from '@/utils/format';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -31,16 +31,17 @@ export default function SearchBar({
 
     const timeoutId = setTimeout(() => {
       setIsLoading(true);
-      try {
-        const results = searchProducts(query, 5);
-        setSuggestions(results);
-        setShowSuggestions(true);
-      } catch (error) {
-        console.error('Error searching products:', error);
-        setSuggestions([]);
-      } finally {
-        setIsLoading(false);
-      }
+      fetch(`/api/products?q=${encodeURIComponent(query)}&limit=5`)
+        .then(response => response.ok ? response.json() : Promise.reject())
+        .then(data => {
+          setSuggestions(Array.isArray(data.products) ? data.products : []);
+          setShowSuggestions(true);
+        })
+        .catch(error => {
+          console.error('Error searching products:', error);
+          setSuggestions([]);
+        })
+        .finally(() => setIsLoading(false));
     }, 300);
 
     return () => clearTimeout(timeoutId);
@@ -139,7 +140,7 @@ export default function SearchBar({
                       {suggestion.name}
                     </p>
                     <p className="text-gray-400 text-xs truncate">
-                      {suggestion.category} • ₹{suggestion.price.toFixed(2)}
+                      {suggestion.category} • {formatCurrency(suggestion.price)}
                     </p>
                     <div className="flex items-center mt-1">
                       <div className="flex items-center">

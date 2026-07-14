@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
   try {
     const client = new OpenAI({ apiKey: OPENAI_API_KEY });
-    const text = candidates.slice(0, 20).map(p => `${p.title} | ${p.category} | $${p.price}`).join('\n');
+    const text = candidates.slice(0, 20).map(p => `${p.id} | ${p.name} | ${p.category} | INR ${p.price}`).join('\n');
     const resp = await client.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [

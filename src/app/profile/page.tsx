@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { User, Order } from '@/types';
 import { UserIcon, EnvelopeIcon, PhoneIcon, MapPinIcon, CalendarIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import RecommendationsSection from '@/components/RecommendationsSection';
+import { formatCurrency } from '@/utils/format';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -403,7 +404,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="flex justify-between items-center">
                           <p className="text-gray-300">
-                            Total: <span className="font-semibold text-white">₹{order.total.toFixed(2)}</span>
+                            Total: <span className="font-semibold text-white">{formatCurrency(order.total)}</span>
                           </p>
                           <button className="text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200">
                             View Details

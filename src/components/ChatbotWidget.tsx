@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
-import products from '@/data/products.json';
 import type { Product } from '@/types';
+import { formatCurrency } from '@/utils/format';
 
 type Message = { id: string; role: 'user' | 'assistant'; content: string };
 
@@ -38,7 +38,7 @@ export default function ChatbotWidget() {
       // Show product suggestions returned by API
       if (Array.isArray(data.products) && data.products.length) {
         const productLines = (data.products as Product[]).slice(0, 4).map(p => 
-          `• ${p.name} — ₹${p.price.toFixed(2)} (${p.rating}★, ${p.reviews} reviews)`
+          `• ${p.name} - ${formatCurrency(p.price)} (${p.rating} stars, ${p.reviews} reviews)`
         );
         setMessages(prev => [...prev, { 
           id: crypto.randomUUID(), 

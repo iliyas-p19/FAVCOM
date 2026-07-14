@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import LazyProductCard from '@/components/LazyProductCard';
 import SearchBar from '@/components/SearchBar';
 import { Product } from '@/types';
-import { loadCategories } from '@/lib/products';
+import { formatCurrency } from '@/utils/format';
 
 interface PaginationInfo {
   currentPage: number;
@@ -17,13 +17,15 @@ interface PaginationInfo {
 }
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [sortBy, setSortBy] = useState('name');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || searchParams.get('q') || '');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'name');
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<{ name: string; count: number }[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({
     currentPage: 1,
     totalPages: 1,
@@ -32,17 +34,14 @@ export default function ProductsPage() {
     hasNextPage: false,
     hasPrevPage: false
   });
-  
-  const searchParams = useSearchParams();
-
   // Fetch products with pagination
-  const fetchProducts = async (page: number = 1) => {
+  const fetchProducts = useCallback(async (page: number = 1) => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '20',
-        search: searchQuery,
+        q: searchQuery,
         category: selectedCategory,
         sortBy: sortBy,
         minPrice: priceRange.min.toString(),
@@ -59,15 +58,17 @@ export default function ProductsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [priceRange.max, priceRange.min, searchQuery, selectedCategory, sortBy]);
 
   useEffect(() => {
     fetchProducts(1);
-  }, [searchQuery, selectedCategory, sortBy, priceRange]);
+  }, [fetchProducts]);
 
-  // Get categories from processed data
-  const categories = useMemo(() => {
-    return loadCategories().slice(0, 20); // Top 20 categories
+  useEffect(() => {
+    fetch('/api/products?categories=true')
+      .then(response => response.ok ? response.json() : Promise.reject())
+      .then(data => setCategories(Array.isArray(data.categories) ? data.categories.slice(0, 20) : []))
+      .catch(() => setCategories([]));
   }, []);
 
   const handleSearch = (query: string) => {
@@ -173,8 +174,8 @@ export default function ProductsPage() {
                     className="w-full"
                   />
                   <div className="flex justify-between text-sm text-gray-400">
-                    <span>₹{priceRange.min}</span>
-                    <span>₹{priceRange.max}</span>
+                    <span>{formatCurrency(priceRange.min)}</span>
+                    <span>{formatCurrency(priceRange.max)}</span>
                   </div>
                 </div>
               </div>

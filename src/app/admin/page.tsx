@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Product } from '@/types';
-import productsData from '@/data/products.json';
+import { formatCurrency } from '@/utils/format';
 import { 
   ChartBarIcon, 
   UsersIcon, 
@@ -10,18 +10,18 @@ import {
   CurrencyDollarIcon,
   PlusIcon,
   PencilIcon,
-  TrashIcon,
-  EyeIcon
+  TrashIcon
 } from '@heroicons/react/24/outline';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Load products
-    setProducts(productsData as Product[]);
+    fetch('/api/products?limit=100')
+      .then(response => response.ok ? response.json() : Promise.reject())
+      .then(data => setProducts(Array.isArray(data.products) ? data.products : []))
+      .catch(() => setProducts([]));
   }, []);
 
   // Mock data for dashboard stats
@@ -111,7 +111,7 @@ export default function AdminDashboard() {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">Total Revenue</p>
                     <p className="text-2xl font-semibold text-gray-900">
-                      ${stats.totalRevenue.toLocaleString()}
+                      {formatCurrency(stats.totalRevenue)}
                     </p>
                   </div>
                 </div>
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
                           {order.customer}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          ${order.amount}
+                          {formatCurrency(order.amount)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
@@ -267,7 +267,7 @@ export default function AdminDashboard() {
                         {product.category}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${product.price.toFixed(2)}
+                        {formatCurrency(product.price)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

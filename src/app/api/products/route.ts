@@ -1,23 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadProducts, searchProducts, getProductsByCategory } from '@/lib/products';
+import { loadCategories, loadProducts, searchProducts } from '@/lib/products';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const search = searchParams.get('search') || '';
+
+    const id = searchParams.get('id');
+    const categoriesOnly = searchParams.get('categories') === 'true';
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const requestedLimit = parseInt(searchParams.get('limit') || '20', 10);
+    const limit = Math.min(Math.max(1, Number.isFinite(requestedLimit) ? requestedLimit : 20), 100);
+    const search = searchParams.get('q') || searchParams.get('search') || '';
     const category = searchParams.get('category') || '';
     const sortBy = searchParams.get('sortBy') || 'name';
     const minPrice = parseFloat(searchParams.get('minPrice') || '0');
     const maxPrice = parseFloat(searchParams.get('maxPrice') || '1000000');
 
-    let products = loadProducts();
+    if (categoriesOnly) {
+      return NextResponse.json({ categories: loadCategories() });
+    }
+
+    if (id) {
+      const product = loadProducts().find(item => String(item.id) === String(id));
+      if (!product) {
+        return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      }
+      return NextResponse.json(product);
+    }
+
+    let products = [...loadProducts()];
 
     // Apply filters
     if (search) {
-      products = searchProducts(search);
+      products = [...searchProducts(search)];
     }
 
     if (category) {
@@ -43,6 +58,8 @@ export async function GET(request: NextRequest) {
           return a.rating - b.rating;
         case 'rating-high':
           return b.rating - a.rating;
+        case 'reviews-high':
+          return b.reviews - a.reviews;
         case 'name':
         default:
           return a.name.localeCompare(b.name);

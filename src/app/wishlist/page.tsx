@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import ProductCard from '@/components/ProductCard';
-import { Product, WishlistItem } from '@/types';
+import { Product } from '@/types';
 import { useStore } from '@/context/StoreContext';
 import { HeartIcon, TrashIcon, ShoppingCartIcon } from '@heroicons/react/24/solid';
-import { getRandomProducts } from '@/lib/products';
+import { formatCurrency } from '@/utils/format';
 
 export default function WishlistPage() {
   const { wishlistItems, removeFromWishlist, addToCart } = useStore();
@@ -19,8 +19,12 @@ export default function WishlistPage() {
     
     // Get AI recommendations based on wishlist
     if (products.length > 0) {
-      const recs = getRandomProducts(4);
-      setRecommendations(recs);
+      fetch('/api/products?sortBy=rating-high&limit=4')
+        .then(response => response.ok ? response.json() : Promise.reject())
+        .then(data => setRecommendations(Array.isArray(data.products) ? data.products : []))
+        .catch(() => setRecommendations([]));
+    } else {
+      setRecommendations([]);
     }
   }, [wishlistItems]);
 
@@ -58,7 +62,7 @@ export default function WishlistPage() {
                       {wishlistProducts.length} items in your wishlist
                     </h2>
                     <p className="text-gray-400">
-                      Total value: ₹{wishlistProducts.reduce((sum, item) => sum + item.price, 0).toFixed(2)}
+                      Total value: {formatCurrency(wishlistProducts.reduce((sum, item) => sum + item.price, 0))}
                     </p>
                   </div>
                 </div>

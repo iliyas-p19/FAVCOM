@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
 import { MinusIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { formatCurrency } from '@/utils/format';
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart } = useStore();
@@ -12,8 +13,8 @@ export default function CartPage() {
 
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-  const shipping = subtotal > 100 ? 0 : 9.99;
-  const tax = subtotal * 0.08; // 8% tax
+  const shipping = subtotal > 999 ? 0 : 99;
+  const tax = subtotal * 0.18;
   const total = subtotal + shipping + tax;
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
@@ -117,11 +118,11 @@ export default function CartPage() {
                           </p>
                           <div className="flex items-center mt-2">
                             <span className="text-lg font-semibold text-white">
-                              ${item.product.price.toFixed(2)}
+                              {formatCurrency(item.product.price)}
                             </span>
                             {item.product.originalPrice && (
                               <span className="text-sm text-gray-400 line-through ml-2">
-                                ${item.product.originalPrice.toFixed(2)}
+                                {formatCurrency(item.product.originalPrice)}
                               </span>
                             )}
                           </div>
@@ -150,7 +151,7 @@ export default function CartPage() {
                         {/* Item Total */}
                         <div className="text-right">
                           <div className="text-lg font-semibold text-white">
-                            ${(item.product.price * item.quantity).toFixed(2)}
+                            {formatCurrency(item.product.price * item.quantity)}
                           </div>
                         </div>
 
@@ -179,22 +180,22 @@ export default function CartPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-300">Subtotal</span>
-                    <span className="font-medium text-white">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium text-white">{formatCurrency(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-300">Shipping</span>
                     <span className="font-medium text-white">
-                      {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
+                      {shipping === 0 ? 'Free' : formatCurrency(shipping)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-300">Tax</span>
-                    <span className="font-medium text-white">${tax.toFixed(2)}</span>
+                    <span className="font-medium text-white">{formatCurrency(tax)}</span>
                   </div>
                   <div className="border-t border-gray-700 pt-3">
                     <div className="flex justify-between text-lg font-semibold">
                       <span className="text-white">Total</span>
-                      <span className="text-white">${total.toFixed(2)}</span>
+                      <span className="text-white">{formatCurrency(total)}</span>
                     </div>
                   </div>
                 </div>
@@ -202,7 +203,7 @@ export default function CartPage() {
                 {shipping > 0 && (
                   <div className="mt-4 p-3 bg-blue-900/20 rounded-lg">
                     <p className="text-sm text-blue-300">
-                      Add ${(100 - subtotal).toFixed(2)} more for free shipping!
+                      Add {formatCurrency(999 - subtotal)} more for free shipping!
                     </p>
                   </div>
                 )}
